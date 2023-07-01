@@ -1,0 +1,128 @@
+spring:
+  application:
+    name: saga-service
+  sleuth:
+    async:
+      enabled: false
+    scheduled:
+      enabled: false
+    integration:
+      websockets:
+        enabled: false
+    reactor:
+      enabled: false
+  zipkin:
+    base-url: http://zipkin:9411
+    sender:
+      type: web
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  mvc:
+    async:
+      request-timeout: 180000
+  rest:
+    network:
+      name: network-service
+      url: http://network-product-service:8761
+    stock-trans:
+      name: stock-trans-service
+      url: http://stock-trans-service:8761
+    order:
+      name: order-client-service
+      url: http://order-service:8761
+    sale:
+      name: sale-service
+      url: http://sale-service:8761
+    party:
+      name: party-service
+      url: http://party-service:8761
+    catalog:
+      name: catalog-service
+      url: http://catalog-service:8761
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  redis:
+    host: redis
+    port: 6379
+    ssl: false
+    timeout: 12m
+    jedis:
+      pool:
+        max-active: 1
+        max-idle: 25
+        max-wait: 30000ms
+        min-idle: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,health,prometheus,httptrace
+  endpoint:
+    health:
+      show-details: always
+eventuate:
+  local:
+    kafka:
+      consumer:
+        properties:
+          auto.offset.reset: latest
+  database:
+    schema: bipower_saga
+websocket:
+  brokerType: RELAY
+  relayHost: rabbitmq-stomp
+  relayPort: 61613
+
+saga-offline:
+  max-retry: 0
+security:
+  oauth2:
+    client:
+      clientId: saga
+      clientSecret: core
+      accessTokenUri: http://authorization-service:8761/oauth/token
+      grantType: client_credentials
+
+    resource:
+      jwt:
+        id: saga
+        key-value: -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqMl9i31XriIEHSUIvjQR
+          VCZcngPIrJbK7qtP6XHWr7tFwGCX/eNmYkc8xSktikNZ+/sc5+6geUpX1QkqG+MN
+          zvfBUPIrEPRZUbg0LHFDVGqTWw6zx2aGUKoq9vOplAH4DHN8N9P1YH3/kWzbpLv9
+          YWr3czprAfecSEJo15pnqF7UpB0PyeWY9FKDMCcQWnLeULffCSr21QeA3ki9Ozco
+          srWKiakPeDP9BSUnKELh3AUTSOtcu4UMad63QGQKF3UGEGsHmGM5kMYmfTEs2Il9
+          TJcEJ+S5D/oTacz2AnKGWnWcZrqDaVSTV+ctH6xOaK4iKivI40FSTaZx5L2RkKiX
+          HwIDAQAB
+          -----END PUBLIC KEY-----
+      whitelist: /test/**,/actuator/**,/network-process/order-item/provision,/network-process/saga/start-billing
+
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: error
+        ws:
+          client:
+            MessageTracing:
+              sent: INFO
+              received: INFO
+          server:
+            MessageTracing:
+              sent: INFO
+              received: INFO
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 30000
+        readTimeout: 30000
+        loggerLevel: basic
+        errorDecoder: com.biplus.saga.configuration.StashErrorDecoder
+

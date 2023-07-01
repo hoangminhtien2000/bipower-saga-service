@@ -1,0 +1,14 @@
+version: "3"
+services:
+  saga-service:
+    image: saga-service:1.0
+    command: "-Duser.timezone=GMT+7 -jar /application.jar"
+    ports:
+      - "8302:8761"
+    environment:
+      _JAVA_OPTIONS: "-Xms700m -Xmx1200m"
+      SPRING_APPLICATION_NAME: "saga-service"
+      SERVER_PORT: "8761"
+      SPRING_PROFILES_ACTIVE: "stage1"
+    deploy:
+      replicas: 1

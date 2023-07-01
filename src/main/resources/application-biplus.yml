@@ -1,0 +1,114 @@
+server:
+  port: 8313
+
+spring:
+  zipkin:
+    base-url: zipkin:9411
+    sender:
+      type: web
+  sleuth:
+    sampler:
+      probability: 1.0
+    web:
+      skip-pattern: /actuator.*|/favicon.ico
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://hr-db:3306/bipower_saga?zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Ho_Chi_Minh&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false
+    driverClassName: org.mariadb.jdbc.Driver
+    username: bipower
+    password: cokwvGXCjUAWoWT2
+    hikari:
+      idle-timeout: 10000
+      maximum-pool-size: 3
+      pool-name: saga-pool
+      max-lifetime: 600000
+  mvc:
+    async:
+      request-timeout: 120000
+  redis:
+    host: bipower-cache
+    port: 6379
+    ssl: false
+    timeout: 12m
+    jedis:
+      pool:
+        max-active: 1
+        max-idle: 25
+        max-wait: 30000ms
+        min-idle: 5
+
+eventuatelocal:
+  kafka:
+    bootstrap:
+      servers: bipower-kafka:9093
+eventuate:
+  local:
+    kafka:
+      consumer:
+        properties:
+          auto.offset.reset: latest
+  database:
+    schema: bipower_saga
+    message: eventuate
+
+security:
+  oauth2:
+    client:
+      clientId: saga
+      clientSecret: core
+      accessTokenUri: http://bipower-authorization-service:8302/oauth/token
+      grantType: client_credentials
+    resource:
+      jwt:
+        id: saga
+        key-value: -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqMl9i31XriIEHSUIvjQR
+          VCZcngPIrJbK7qtP6XHWr7tFwGCX/eNmYkc8xSktikNZ+/sc5+6geUpX1QkqG+MN
+          zvfBUPIrEPRZUbg0LHFDVGqTWw6zx2aGUKoq9vOplAH4DHN8N9P1YH3/kWzbpLv9
+          YWr3czprAfecSEJo15pnqF7UpB0PyeWY9FKDMCcQWnLeULffCSr21QeA3ki9Ozco
+          srWKiakPeDP9BSUnKELh3AUTSOtcu4UMad63QGQKF3UGEGsHmGM5kMYmfTEs2Il9
+          TJcEJ+S5D/oTacz2AnKGWnWcZrqDaVSTV+ctH6xOaK4iKivI40FSTaZx5L2RkKiX
+          HwIDAQAB
+          -----END PUBLIC KEY-----
+      whitelist: /test/**,/actuator,/network-process/order-item/provision,/network-process/saga/start-billing
+
+websocket:
+  brokerType: SIMPLE
+  relayHost: 192.168.3.80
+  relayPort: 8613
+
+saga-offline:
+  max-retry: 0
+
+logging:
+  level:
+    org:
+      springframework:
+        web: TRACE
+        ws:
+          client:
+            MessageTracing:
+              sent: TRACE
+              received: TRACE
+          server:
+            MessageTracing:
+              sent: TRACE
+              received: TRACE
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 30000
+        readTimeout: 30000
+        loggerLevel: basic
+        errorDecoder: com.biplus.saga.configuration.StashErrorDecoder
+
+candidate:
+  root_path: https://bipower.biplus.com.vn
+  detail_link: /layout/recruitment/candidate/detail
